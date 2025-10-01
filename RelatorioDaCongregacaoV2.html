@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Mensal - Congregação São Paulo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2E7D32; /* verde suave */
+            --primary-hover-color: #43A047; /* verde claro no hover */
+            --danger-color: #dc3545;
+            --danger-hover-color: #bb2d3b;
+            --background-color: #FDF6EC; /* bege claro */
+            --card-background-color: #FFFFFF; /* container branco */
+            --text-color: #333333;
+            --label-color: #444444;
+            --border-color: #ced4da;
+            --focus-shadow-color: rgba(46, 125, 50, 0.25); /* sombra verde */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 20px;
+            color: var(--text-color);
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            background-color: var(--card-background-color);
+            padding: 2em 2.5em;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5em;
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary-color);
+        }
+        .header p {
+            font-size: 1rem;
+            color: var(--label-color);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .form-group { margin-bottom: 1.5em; }
+        label { display: block; margin-bottom: 0.6em; color: var(--label-color); font-weight: 500; }
+        
+        select, input[type="number"], textarea {
+            width: 100%;
+            padding: 0.9em 1em;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        select:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--focus-shadow-color);
+        }
+        textarea { resize: vertical; min-height: 90px; }
+        
+        button {
+            padding: 1em;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        button#submit-button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        button#submit-button:hover:not(:disabled) { background-color: var(--primary-hover-color); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        #pioneer-details { display: none; background-color: #f8f9fa; padding: 1.5em; margin-top: 1em; border-radius: 8px; }
+        .hidden { display: none; }
+        
+        /* Feedback de sucesso */
+        #success-screen {
+            text-align: center;
+            padding: 2em;
+            border-radius: 15px;
+            background: #e6f4ea; /* verde claro suave */
+            border: 1px solid #cce3d6;
+        }
+        #success-screen h2 {
+            color: #2e7d32;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4em;
+        }
+        #success-screen p {
+            color: #3d3d3d;
+            font-size: 1.1rem;
+        }
+
+        /* Botões finais */
+        #new-report-btn,
+        #exit-btn {
+            min-width: 180px;
+            padding: 0.9em 1.5em;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #new-report-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #new-report-btn:hover { background-color: var(--primary-hover-color); }
+
+        #exit-btn {
+            background-color: #b12222;
+            color: white;
+        }
+        #exit-btn:hover { background-color: #a31515; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Relatório Mensal de Publicadores</h1>
+            <p>Congregação São Paulo</p>
+        </div>
+        
+        <div id="loading" style="text-align: center; font-weight: 500;">Carregando...🔄</div>
+
+        <form id="report-form" class="hidden">
+            <div class="form-group"><label for="group-select">1. Selecione o seu Grupo:</label><select id="group-select" name="group" required></select></div>
+            <div class="form-group"><label for="name-select">2. Selecione o seu Nome:</label><select id="name-select" name="name" required disabled><option value="">-- Primeiro escolha um grupo --</option></select></div>
+            <div class="form-group"><label for="month-select">3. Mês Trabalhado:</label><select id="month-select" name="month" required></select></div>
+            <div class="form-group"><label>4. Você Participou de alguma modalidade ministério este mês?</label><div class="radio-group"><label><input type="radio" name="participatedInMinistry" value="Sim" required> Sim</label><label><input type="radio" name="participatedInMinistry" value="Não"> Não</label></div></div>
+            <div class="form-group"><label for="study-count">5. Quantos estudos bíblicos dirigiu?</label><input type="number" id="study-count" name="studyCount" min="0" value="0" required></div>
+            <div class="form-group"><label>6. É Pioneiro?</label><div class="radio-group"><label><input type="radio" name="isPioneer" value="Sim" required> Sim</label><label><input type="radio" name="isPioneer" value="Não" checked> Não</label></div></div>
+            <div id="pioneer-details" class="form-group"><label for="pioneer-type">Tipo de Pioneiro:</label><select id="pioneer-type" name="pioneerType"><option value="">-- Selecione --</option><option value="Regular">Regular</option><option value="Auxiliar">Auxiliar</option></select><div style="height: 1.5em;"></div><label for="pioneer-hours">Quantas horas fez no mês?</label><input type="number" id="pioneer-hours" name="hours" min="0" placeholder="Ex: 50"></div>
+            <div class="form-group"><label for="observations">7. Observações (opcional):</label><textarea id="observations" name="observations"></textarea></div>
+            <button type="submit" id="submit-button">Enviar Relatório</button>
+        </form>
+
+        <div id="success-screen" class="hidden feedback-screen">
+            <h2 style="color: #155724;">Enviado com Sucesso!</h2>
+            <p>Seu relatório foi registrado. Obrigado.</p>
+            <div class="button-group">
+                <button id="new-report-btn">Enviar Outro Relatório</button>
+                <button id="exit-btn" class="btn-danger">Sair</button>
+            </div>
+        </div>
+
+        <div id="error-message" class="hidden feedback-screen" style="color: #721c24;"></div>
+        
+        <div id="goodbye-screen" class="hidden feedback-screen">
+            <h2>Obrigado!</h2>
+            <p>Você pode fechar esta página.</p>
+        </div>
+    </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaiCL2xsJIxj57oEhUNjyoy-P4PuNnUFscMFiLgESOjpzmupy89SgZEpVnOwLrSZK2aw/exec";
+
+    const form = document.getElementById('report-form');
+    const loadingDiv = document.getElementById('loading');
+    const groupSelect = document.getElementById('group-select');
+    const nameSelect = document.getElementById('name-select');
+    const monthSelect = document.getElementById('month-select');
+    const pioneerDetails = document.getElementById('pioneer-details');
+    const pioneerType = document.getElementById('pioneer-type');
+    const pioneerHours = document.getElementById('pioneer-hours');
+    const isPioneerRadios = document.querySelectorAll('input[name="isPioneer"]');
+    const submitButton = document.getElementById('submit-button');
+    const successScreen = document.getElementById('success-screen');
+    const errorMessage = document.getElementById('error-message');
+    const newReportBtn = document.getElementById('new-report-btn');
+    const exitBtn = document.getElementById('exit-btn');
+    const goodbyeScreen = document.getElementById('goodbye-screen');
+
+    let groupsData = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateMonthSelect();
+      fetchGroups();
+    });
+
+    function populateMonthSelect() {
+      const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      const now = new Date();
+      for (let i = 0; i < 3; i++) { 
+        let date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        let monthName = months[date.getMonth()];
+        let year = date.getFullYear();
+        let option = new Option(`${monthName} de ${year}`, `${monthName}/${year}`);
+        monthSelect.add(option);
+      }
+    }
+
+    function fetchGroups() {
+      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({action: 'getGroupNames'}) })
+        .then(res => res.json())
+        .then(data => {
+          groupsData = data;
+          groupSelect.innerHTML = '<option value="">-- Selecione --</option>';
+          Object.keys(groupsData).sort().forEach(group => {
+            groupSelect.add(new Option(group, group));
+          });
+          loadingDiv.classList.add('hidden');
+          form.classList.remove('hidden');
+        }).catch(() => {
+          loadingDiv.textContent = "Erro ao carregar dados. Verifique a URL do script.";
+        });
+    }
+
+    groupSelect.addEventListener('change', () => {
+      nameSelect.innerHTML = '<option value="">-- Selecione --</option>';
+      nameSelect.disabled = true;
+      const selectedGroup = groupSelect.value;
+      if (selectedGroup && groupsData[selectedGroup]) {
+        groupsData[selectedGroup].sort().forEach(name => nameSelect.add(new Option(name, name)));
+        nameSelect.disabled = false;
+      }
+    });
+
+    isPioneerRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.value === 'Sim' && radio.checked) {
+          pioneerDetails.style.display = 'block';
+          pioneerType.required = true;
+          pioneerHours.required = true;
+        } else {
+          pioneerDetails.style.display = 'none';
+          pioneerType.required = false;
+          pioneerHours.required = false;
+          pioneerType.value = "";
+          pioneerHours.value = "";
+        }
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = 'Enviando...🔄';
+      errorMessage.classList.add('hidden');
+
+      const formData = new FormData(form);
+      const data = {
+        month: formData.get('month'),
+        group: formData.get('group'),
+        name: formData.get('name'),
+        participatedInMinistry: formData.get('participatedInMinistry'),
+        studyCount: formData.get('studyCount'),
+        pioneerType: formData.get('isPioneer') === 'Sim' ? formData.get('pioneerType') : '',
+        hours: formData.get('isPioneer') === 'Sim' ? formData.get('hours') : '',
+        observations: formData.get('observations')
+      };
+
+      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({action: 'saveData', data: data}) })
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            form.classList.add('hidden');
+            successScreen.classList.remove('hidden');
+            form.reset();
+            pioneerDetails.style.display = 'none';
+          } else {
+            throw new Error(result.message || "Erro desconhecido no servidor.");
+          }
+        })
+        .catch(error => {
+          errorMessage.textContent = `❌ Erro: ${error.message || 'Verifique a conexão ou o script.'}`;
+          errorMessage.classList.remove('hidden');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Enviar Relatório';
+        });
+    });
+
+    newReportBtn.addEventListener('click', () => {
+      successScreen.classList.add('hidden');
+      form.classList.remove('hidden');
+      submitButton.disabled = false;
+      submitButton.textContent = 'Enviar Relatório';
+    });
+    
+    exitBtn.addEventListener('click', () => {
+        successScreen.classList.add('hidden');
+        goodbyeScreen.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
