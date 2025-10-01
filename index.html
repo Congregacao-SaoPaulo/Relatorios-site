@@ -166,11 +166,11 @@
         <form id="report-form" class="hidden">
             <div class="form-group"><label for="group-select">1. Selecione o seu Grupo:</label><select id="group-select" name="group" required></select></div>
             <div class="form-group"><label for="name-select">2. Selecione o seu Nome:</label><select id="name-select" name="name" required disabled><option value="">-- Primeiro escolha um grupo --</option></select></div>
-            <div class="form-group"><label for="month-select">3. Mês Trabalhado:</label><select id="month-select" name="month" required></select></div>
+            <div class="form-group"><label for="month-select">3. Selecione o Mês Trabalhado:</label><select id="month-select" name="month" required></select></div>
             <div class="form-group"><label>4. Você Participou de alguma modalidade ministério este mês?</label><div class="radio-group"><label><input type="radio" name="participatedInMinistry" value="Sim" required> Sim</label><label><input type="radio" name="participatedInMinistry" value="Não"> Não</label></div></div>
-            <div class="form-group"><label for="study-count">5. Quantos estudos bíblicos dirigiu?</label><input type="number" id="study-count" name="studyCount" min="0" value="0" required></div>
+            <div class="form-group"><label for="study-count">5. Quantos estudos bíblicos dirigiu?</label><input type="number" id="study-count" name="studyCount" min="0" placeholder="Digite a quantidade..." required></div>
             <div class="form-group"><label>6. É Pioneiro?</label><div class="radio-group"><label><input type="radio" name="isPioneer" value="Sim" required> Sim</label><label><input type="radio" name="isPioneer" value="Não" checked> Não</label></div></div>
-            <div id="pioneer-details" class="form-group"><label for="pioneer-type">Tipo de Pioneiro:</label><select id="pioneer-type" name="pioneerType"><option value="">-- Selecione --</option><option value="Regular">Regular</option><option value="Auxiliar">Auxiliar</option></select><div style="height: 1.5em;"></div><label for="pioneer-hours">Quantas horas fez no mês?</label><input type="number" id="pioneer-hours" name="hours" min="0" placeholder="Ex: 50"></div>
+            <div id="pioneer-details" class="form-group"><label for="pioneer-type">Tipo de Pioneiro:</label><select id="pioneer-type" name="pioneerType"><option value="">-- Selecione --</option><option value="Regular">Regular</option><option value="Auxiliar">Auxiliar</option></select><div style="height: 1.5em;"></div><label for="pioneer-hours">Quantas horas fez no mês?</label><input type="number" id="pioneer-hours" name="hours" min="0" placeholder="Digite a quantidade..."></div>
             <div class="form-group"><label for="observations">7. Observações (opcional):</label><textarea id="observations" name="observations"></textarea></div>
             <button type="submit" id="submit-button">Enviar Relatório</button>
         </form>
@@ -221,6 +221,7 @@
     function populateMonthSelect() {
       const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
       const now = new Date();
+      monthSelect.innerHTML = '<option value="">-- Selecione --</option>';
       for (let i = 0; i < 3; i++) { 
         let date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         let monthName = months[date.getMonth()];
