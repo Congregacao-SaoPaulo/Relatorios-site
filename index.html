@@ -167,9 +167,9 @@
             <div class="form-group"><label for="group-select">1. Selecione o seu Grupo:</label><select id="group-select" name="group" required></select></div>
             <div class="form-group"><label for="name-select">2. Selecione o seu Nome:</label><select id="name-select" name="name" required disabled><option value="">-- Primeiro escolha um grupo --</option></select></div>
             <div class="form-group"><label for="month-select">3. Selecione o Mês Trabalhado:</label><select id="month-select" name="month" required></select></div>
-            <div class="form-group"><label>4. Você Participou de alguma modalidade ministério este mês?</label><div class="radio-group"><label><input type="radio" name="participatedInMinistry" value="Sim" required> Sim</label><label><input type="radio" name="participatedInMinistry" value="Não"> Não</label></div></div>
+            <div class="form-group"><label>4. Você Participou de alguma modalidade no ministério este mês?</label><div class="radio-group"><label><input type="radio" name="participatedInMinistry" value="Sim" required> Sim</label><label><input type="radio" name="participatedInMinistry" value="Não"> Não</label></div></div>
             <div class="form-group"><label for="study-count">5. Quantos estudos bíblicos dirigiu?</label><input type="number" id="study-count" name="studyCount" min="0" placeholder="Digite a quantidade..." required></div>
-            <div class="form-group"><label>6. É Pioneiro?</label><div class="radio-group"><label><input type="radio" name="isPioneer" value="Sim" required> Sim</label><label><input type="radio" name="isPioneer" value="Não" checked> Não</label></div></div>
+            <div class="form-group"><label>6. Você está de Pioneiro?</label><div class="radio-group"><label><input type="radio" name="isPioneer" value="Sim" required> Sim</label><label><input type="radio" name="isPioneer" value="Não" checked> Não</label></div></div>
             <div id="pioneer-details" class="form-group"><label for="pioneer-type">Tipo de Pioneiro:</label><select id="pioneer-type" name="pioneerType"><option value="">-- Selecione --</option><option value="Regular">Regular</option><option value="Auxiliar">Auxiliar</option></select><div style="height: 1.5em;"></div><label for="pioneer-hours">Quantas horas fez no mês?</label><input type="number" id="pioneer-hours" name="hours" min="0" placeholder="Digite a quantidade..."></div>
             <div class="form-group"><label for="observations">7. Observações (opcional):</label><textarea id="observations" name="observations"></textarea></div>
             <button type="submit" id="submit-button">Enviar Relatório</button>
@@ -193,135 +193,177 @@
     </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaiCL2xsJIxj57oEhUNjyoy-P4PuNnUFscMFiLgESOjpzmupy89SgZEpVnOwLrSZK2aw/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyaiCL2xsJIxj57oEhUNjyoy-P4PuNnUFscMFiLgESOjpzmupy89SgZEpVnOwLrSZK2aw/exec";
 
-    const form = document.getElementById('report-form');
-    const loadingDiv = document.getElementById('loading');
-    const groupSelect = document.getElementById('group-select');
-    const nameSelect = document.getElementById('name-select');
-    const monthSelect = document.getElementById('month-select');
-    const pioneerDetails = document.getElementById('pioneer-details');
-    const pioneerType = document.getElementById('pioneer-type');
-    const pioneerHours = document.getElementById('pioneer-hours');
-    const isPioneerRadios = document.querySelectorAll('input[name="isPioneer"]');
-    const submitButton = document.getElementById('submit-button');
-    const successScreen = document.getElementById('success-screen');
-    const errorMessage = document.getElementById('error-message');
-    const newReportBtn = document.getElementById('new-report-btn');
-    const exitBtn = document.getElementById('exit-btn');
-    const goodbyeScreen = document.getElementById('goodbye-screen');
+  const form = document.getElementById('report-form');
+  const loadingDiv = document.getElementById('loading');
+  const groupSelect = document.getElementById('group-select');
+  const nameSelect = document.getElementById('name-select');
+  const monthSelect = document.getElementById('month-select');
+  const pioneerDetails = document.getElementById('pioneer-details');
+  const pioneerType = document.getElementById('pioneer-type');
+  const pioneerHours = document.getElementById('pioneer-hours');
+  const isPioneerRadios = document.querySelectorAll('input[name="isPioneer"]');
+  const submitButton = document.getElementById('submit-button');
+  const successScreen = document.getElementById('success-screen');
+  const errorMessage = document.getElementById('error-message');
+  const newReportBtn = document.getElementById('new-report-btn');
+  const exitBtn = document.getElementById('exit-btn');
+  const goodbyeScreen = document.getElementById('goodbye-screen');
 
-    let groupsData = {};
+  let groupsData = {};
 
-    document.addEventListener('DOMContentLoaded', () => {
-      populateMonthSelect();
-      fetchGroups();
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+    populateMonthSelect();
+    fetchGroups();
 
-    function populateMonthSelect() {
-      const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-      const now = new Date();
-      monthSelect.innerHTML = '<option value="">-- Selecione --</option>';
-      for (let i = 0; i < 3; i++) { 
-        let date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        let monthName = months[date.getMonth()];
-        let year = date.getFullYear();
-        let option = new Option(`${monthName} de ${year}`, `${monthName}/${year}`);
-        monthSelect.add(option);
-      }
-    }
-
-    function fetchGroups() {
-      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({action: 'getGroupNames'}) })
-        .then(res => res.json())
-        .then(data => {
-          groupsData = data;
-          groupSelect.innerHTML = '<option value="">-- Selecione --</option>';
-          Object.keys(groupsData).sort().forEach(group => {
-            groupSelect.add(new Option(group, group));
-          });
-          loadingDiv.classList.add('hidden');
-          form.classList.remove('hidden');
-        }).catch(() => {
-          loadingDiv.textContent = "Erro ao carregar dados. Verifique a URL do script.";
-        });
-    }
-
-    groupSelect.addEventListener('change', () => {
-      nameSelect.innerHTML = '<option value="">-- Selecione --</option>';
-      nameSelect.disabled = true;
-      const selectedGroup = groupSelect.value;
-      if (selectedGroup && groupsData[selectedGroup]) {
-        groupsData[selectedGroup].sort().forEach(name => nameSelect.add(new Option(name, name)));
-        nameSelect.disabled = false;
-      }
-    });
-
-    isPioneerRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        if (radio.value === 'Sim' && radio.checked) {
-          pioneerDetails.style.display = 'block';
-          pioneerType.required = true;
-          pioneerHours.required = true;
-        } else {
-          pioneerDetails.style.display = 'none';
-          pioneerType.required = false;
-          pioneerHours.required = false;
-          pioneerType.value = "";
-          pioneerHours.value = "";
-        }
-      });
-    });
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      submitButton.disabled = true;
-      submitButton.textContent = 'Enviando...🔄';
-      errorMessage.classList.add('hidden');
-
-      const formData = new FormData(form);
-      const data = {
-        month: formData.get('month'),
-        group: formData.get('group'),
-        name: formData.get('name'),
-        participatedInMinistry: formData.get('participatedInMinistry'),
-        studyCount: formData.get('studyCount'),
-        pioneerType: formData.get('isPioneer') === 'Sim' ? formData.get('pioneerType') : '',
-        hours: formData.get('isPioneer') === 'Sim' ? formData.get('hours') : '',
-        observations: formData.get('observations')
-      };
-
-      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({action: 'saveData', data: data}) })
-        .then(res => res.json())
-        .then(result => {
-          if (result.status === 'success') {
-            form.classList.add('hidden');
-            successScreen.classList.remove('hidden');
-            form.reset();
-            pioneerDetails.style.display = 'none';
-          } else {
-            throw new Error(result.message || "Erro desconhecido no servidor.");
-          }
+    // Se houver relatório pendente, tenta reenviar
+    const pending = localStorage.getItem("pendingReport");
+    if (pending) {
+      sendReport(JSON.parse(pending))
+        .then(() => {
+          localStorage.removeItem("pendingReport");
+          console.log("Relatório pendente reenviado com sucesso!");
         })
-        .catch(error => {
-          errorMessage.textContent = `❌ Erro: ${error.message || 'Verifique a conexão ou o script.'}`;
-          errorMessage.classList.remove('hidden');
-          submitButton.disabled = false;
-          submitButton.textContent = 'Enviar Relatório';
-        });
-    });
+        .catch(() => console.warn("Ainda não foi possível reenviar o relatório pendente."));
+    }
+  });
 
-    newReportBtn.addEventListener('click', () => {
-      successScreen.classList.add('hidden');
-      form.classList.remove('hidden');
-      submitButton.disabled = false;
-      submitButton.textContent = 'Enviar Relatório';
+  function populateMonthSelect() {
+    const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    const now = new Date();
+    monthSelect.innerHTML = '<option value="">-- Selecione --</option>';
+    for (let i = 0; i < 3; i++) { 
+      let date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      let monthName = months[date.getMonth()];
+      let year = date.getFullYear();
+      let option = new Option(`${monthName} de ${year}`, `${monthName}/${year}`);
+      monthSelect.add(option);
+    }
+  }
+
+  function fetchGroups() {
+    const cached = localStorage.getItem("groupsData");
+    if (cached) {
+      groupsData = JSON.parse(cached);
+      renderGroups(groupsData);
+      return;
+    }
+
+    fetch(SCRIPT_URL + "?action=getGroupNames")
+      .then(res => res.json())
+      .then(data => {
+        groupsData = data;
+        localStorage.setItem("groupsData", JSON.stringify(data));
+        renderGroups(data);
+      })
+      .catch(() => {
+        loadingDiv.textContent = "Erro ao carregar dados. Tente novamente.";
+      });
+  }
+
+  function renderGroups(data) {
+    groupSelect.innerHTML = '<option value="">-- Selecione --</option>';
+    Object.keys(data).sort().forEach(group => {
+      groupSelect.add(new Option(group, group));
     });
-    
-    exitBtn.addEventListener('click', () => {
-        successScreen.classList.add('hidden');
-        goodbyeScreen.classList.remove('hidden');
+    loadingDiv.classList.add('hidden');
+    form.classList.remove('hidden');
+  }
+
+  groupSelect.addEventListener('change', () => {
+    nameSelect.innerHTML = '<option value="">-- Selecione --</option>';
+    nameSelect.disabled = true;
+    const selectedGroup = groupSelect.value;
+    if (selectedGroup && groupsData[selectedGroup]) {
+      groupsData[selectedGroup].sort().forEach(name => nameSelect.add(new Option(name, name)));
+      nameSelect.disabled = false;
+    }
+  });
+
+  isPioneerRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (radio.value === 'Sim' && radio.checked) {
+        pioneerDetails.style.display = 'block';
+        pioneerType.required = true;
+        pioneerHours.required = true;
+      } else {
+        pioneerDetails.style.display = 'none';
+        pioneerType.required = false;
+        pioneerHours.required = false;
+        pioneerType.value = "";
+        pioneerHours.value = "";
+      }
     });
-  </script>
+  });
+
+  // Função com retry automático
+  async function sendReport(data, retries = 2) {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'saveData', data })
+      });
+      const result = await res.json();
+      if (result.status !== 'success') throw new Error(result.message);
+      return result;
+    } catch (err) {
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, 2000));
+        return sendReport(data, retries - 1);
+      }
+      throw err;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando...🔄';
+    errorMessage.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const data = {
+      month: formData.get('month'),
+      group: formData.get('group'),
+      name: formData.get('name'),
+      participatedInMinistry: formData.get('participatedInMinistry'),
+      studyCount: formData.get('studyCount'),
+      pioneerType: formData.get('isPioneer') === 'Sim' ? formData.get('pioneerType') : '',
+      hours: formData.get('isPioneer') === 'Sim' ? formData.get('hours') : '',
+      observations: formData.get('observations')
+    };
+
+    sendReport(data)
+      .then(() => {
+        form.classList.add('hidden');
+        successScreen.classList.remove('hidden');
+        form.reset();
+        pioneerDetails.style.display = 'none';
+      })
+      .catch(error => {
+        errorMessage.textContent = "❌ Erro ao enviar. Seu relatório foi salvo localmente e será reenviado quando possível.";
+        errorMessage.classList.remove('hidden');
+        localStorage.setItem("pendingReport", JSON.stringify(data));
+      })
+      .finally(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Enviar Relatório';
+      });
+  });
+
+  newReportBtn.addEventListener('click', () => {
+    successScreen.classList.add('hidden');
+    form.classList.remove('hidden');
+    submitButton.disabled = false;
+    submitButton.textContent = 'Enviar Relatório';
+  });
+
+  exitBtn.addEventListener('click', () => {
+    successScreen.classList.add('hidden');
+    goodbyeScreen.classList.remove('hidden');
+  });
+</script>
 </body>
-</html>
+</html> 
