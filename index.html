@@ -11,6 +11,39 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    /* ==============================
+   OVERLAY DE CARREGAMENTO (ENVIO)
+============================== */
+#submit-loading-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  visibility:hidden;
+  opacity:0;
+  transition:opacity .2s ease, visibility .2s ease;
+}
+
+#submit-loading-overlay.show{
+  visibility:visible;
+  opacity:1;
+}
+
+.loading-box{
+  background:#fff;
+  padding:28px 36px;
+  border-radius:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  color:var(--primary-color);
+}
+
     :root{
       --primary-color: #2E7D32;
       --primary-hover-color: #43A047;
@@ -30,12 +63,15 @@
       background: var(--background-color);
       color: var(--text-color);
       margin: 0;
-      display: flex;
+      display: grid;
+      place-items: center;
+      min-height: 100%;
       align-items: center;
       justify-content: center;
       padding: 24px;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      
     }
 
     .container{
@@ -126,9 +162,30 @@
       .container{ padding:18px; }
       .header h1{ font-size:1.25rem; }
     }
+    .spinner{
+  width:28px;
+  height:28px;
+  border:4px solid #c8e6c9;
+  border-top-color:#2E7D32;
+  border-radius:50%;
+  animation:spin .9s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
   </style>
 </head>
 <body>
+  <!-- TELA DE CARREGAMENTO NO ENVIO -->
+<div id="submit-loading-overlay" aria-live="polite">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <strong>Enviando relatório...</strong>
+    <span>Aguarde alguns segundos</span>
+  </div>
+</div>
+
   <main class="container" role="main" aria-labelledby="page-title">
     <div class="header">
       <h1 id="page-title">Relatório Mensal de Publicadores</h1>
@@ -484,49 +541,49 @@
          usuários usando a mesma sessão não vejam o nome já usado
     ------------------------------*/
     async function sendReport(data, attempt = 1){
-      try {
-        submitButton.disabled = true;
-        submitButton.textContent = 'Enviando... 🔄';
-        errorMessage.classList.add('hidden');
+  const overlay = document.getElementById('submit-loading-overlay');
 
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'saveData', data })
-        });
+  try {
+    overlay.classList.add('show'); // MOSTRA LOADING
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando... 🔄';
+    errorMessage.classList.add('hidden');
 
-        if (!res.ok) throw new Error('Resposta do servidor não OK');
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveData', data })
+    });
 
-        const result = await res.json();
+    if (!res.ok) throw new Error('Resposta do servidor não OK');
 
-        if (!result || result.status !== 'success') {
-          const msg = (result && result.message) ? result.message : 'Erro no servidor';
-          throw new Error(msg);
-        }
-
-        // Remover localmente o nome do cache para que não apareça em novos selects nesta sessão
-        removeNameFromLocalCache(data.group, data.name);
-
-        // Mostrar sucesso
-        form.reset();
-        pioneerDetails.style.display = 'none';
-        form.classList.add('hidden');
-        successScreen.classList.remove('hidden');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Enviar Relatório';
-
-      } catch (err) {
-        console.warn(`Envio tentativa ${attempt} falhou:`, err);
-        if (attempt < 3) {
-          // backoff exponencial leve
-          await delay(400 * attempt);
-          return sendReport(data, attempt + 1);
-        }
-        errorMessage.textContent = `❌ Erro ao enviar: ${err.message || 'Verifique a conexão.'}`;
-        errorMessage.classList.remove('hidden');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Enviar Relatório';
-      }
+    const result = await res.json();
+    if (!result || result.status !== 'success') {
+      throw new Error(result.message || 'Erro no servidor');
     }
+
+    removeNameFromLocalCache(data.group, data.name);
+
+    form.reset();
+    pioneerDetails.style.display = 'none';
+    form.classList.add('hidden');
+    successScreen.classList.remove('hidden');
+
+  } catch (err) {
+    if (attempt < 3) {
+      await delay(400 * attempt);
+      return sendReport(data, attempt + 1);
+    }
+
+    errorMessage.textContent = `❌ Erro ao enviar: ${err.message}`;
+    errorMessage.classList.remove('hidden');
+
+  } finally {
+    overlay.classList.remove('show'); // ESCONDE LOADING
+    submitButton.disabled = false;
+    submitButton.textContent = 'Enviar Relatório';
+  }
+}
+
 
     function removeNameFromLocalCache(group, name){
       try {
@@ -555,5 +612,25 @@
     }
 
   </script>
+  <!-- Tela de carregamento -->
+<div id="sending-overlay" style="
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:600;
+  ">
+    <div class="spinner"></div>
+    <span>Enviando...</span>
+  </div>
+</div>
 </body>
 </html>
